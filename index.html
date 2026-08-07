@@ -519,7 +519,11 @@
     const cat = CATS[activeCat];
     fetch(NOTIFY_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0bm9xemVrbXd0YXdteXppZ3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMzc5ODksImV4cCI6MjA5MDgxMzk4OX0.cremdPN06EPE-P2AqVxw3x7n36byeZxkvRt8pmHfyyE',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0bm9xemVrbXd0YXdteXppZ3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMzc5ODksImV4cCI6MjA5MDgxMzk4OX0.cremdPN06EPE-P2AqVxw3x7n36byeZxkvRt8pmHfyyE',
+      },
       body: JSON.stringify({
         category: cat ? cat.label : '',
         emoji,
