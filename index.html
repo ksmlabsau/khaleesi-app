@@ -23,6 +23,7 @@
       --activities: #3b82f6;
       --needs:      #22c55e;
       --behaviour:  #a855f7;
+      --upset:      #ef4444;
       --bg:         #111827;
       --surface:    #1f2937;
       --text:       #f9fafb;
@@ -122,6 +123,7 @@
     .cat-btn[data-cat="activities"] { background: var(--activities); }
     .cat-btn[data-cat="needs"]      { background: var(--needs); }
     .cat-btn[data-cat="behaviour"]  { background: var(--behaviour); }
+    .cat-btn[data-cat="upset"]       { background: var(--upset); }
 
     .home-footer {
       margin-top: 28px;
@@ -222,6 +224,7 @@
     .grid-activities .card:not(.else-card) { border-color: var(--activities); }
     .grid-needs      .card:not(.else-card) { border-color: var(--needs); }
     .grid-behaviour  .card:not(.else-card) { border-color: var(--behaviour); }
+    .grid-upset      .card:not(.else-card) { border-color: var(--upset); }
 
     .card.else-card {
       border-style: dashed;
@@ -434,6 +437,11 @@
       <span class="btn-text">What I need</span>
       <span class="btn-arrow">›</span>
     </button>
+    <button class="cat-btn" data-cat="upset" onclick="openCategory('upset')">
+      <span class="btn-icon">😤</span>
+      <span class="btn-text">Why am I upset?</span>
+      <span class="btn-arrow">›</span>
+    </button>
     <button class="cat-btn" data-cat="behaviour" onclick="openCategory('behaviour')">
       <span class="btn-icon">🗣️</span>
       <span class="btn-text">How I am right now</span>
@@ -505,7 +513,7 @@
   ]);
 
   // All selections from these categories notify (Needs = all urgent)
-  const NOTIFY_CATEGORIES = new Set(["What I need"]);
+  const NOTIFY_CATEGORIES = new Set(["What I need", "Why am I upset?"]);
 
   function notifyDad(emoji, label) {
     const cat = CATS[activeCat];
@@ -568,6 +576,17 @@
         ['🍽️','hungry'],         ['🥤','thirsty'],      ['🚽','need toilet'],   ['😴','tired / need rest'],
         ['🙋','need help'],       ['🤗','want a hug'],   ['🧘','want space'],    ['😣','in pain'],
         ['🤒','feel sick'],       ['🤷','not sure what I need'],
+      ]
+    },
+    upset: {
+      label: 'Why am I upset?',
+      color: '#ef4444',
+      items: [
+        ['📱','my iPad is not working'],    ['📱','my iPhone is not working'],
+        ['🖥️','the iMac is not working'],   ['😴','I am tired'],
+        ['🥱','I am bored'],                ['🤢','I do not feel well'],
+        ['😣','I am in pain'],              ['🍽️','I am hungry'],
+        ['😠','I am irritated'],            ['🔊','the sounds outside are bugging me'],
       ]
     },
     behaviour: {
