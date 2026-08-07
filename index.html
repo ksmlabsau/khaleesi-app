@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#5b21b6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="My Voice">
+  <link rel="manifest" href="manifest.json">
+  <title>My Voice</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --feelings:   #ec4899;
+      --food:       #f97316;
+      --activities: #3b82f6;
+      --needs:      #22c55e;
+      --behaviour:  #a855f7;
+      --bg:         #111827;
+      --surface:    #1f2937;
+      --text:       #f9fafb;
+      --muted:      #9ca3af;
+      --radius:     18px;
+    }
+
+    html, body {
+      min-height: 100%;
+      min-height: 100svh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── SCREENS ── */
+    .screen {
+      display: none;
+      min-height: 100svh;
+      padding: 16px;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HOME ── */
+    #home {
+      align-items: center;
+      padding: 32px 16px 40px;
+      gap: 0;
+    }
+
+    .home-hero {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .home-hero .hero-icon {
+      font-size: 3.5rem;
+      display: block;
+      margin-bottom: 10px;
+      line-height: 1;
+    }
+
+    .home-hero h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .home-hero p {
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 1.05rem;
+    }
+
+    .cat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .cat-btn {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 22px;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      text-align: left;
+      transition: opacity 0.12s, transform 0.12s;
+      min-height: 70px;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .cat-btn:active {
+      opacity: 0.78;
+      transform: scale(0.97);
+    }
+
+    .cat-btn .btn-icon  { font-size: 1.9rem; flex-shrink: 0; }
+    .cat-btn .btn-text  { flex: 1; }
+    .cat-btn .btn-arrow { font-size: 1.3rem; opacity: 0.6; }
+
+    .cat-btn[data-cat="feelings"]   { background: var(--feelings); }
+    .cat-btn[data-cat="food"]       { background: var(--food); }
+    .cat-btn[data-cat="activities"] { background: var(--activities); }
+    .cat-btn[data-cat="needs"]      { background: var(--needs); }
+    .cat-btn[data-cat="behaviour"]  { background: var(--behaviour); }
+
+    .home-footer {
+      margin-top: 28px;
+    }
+
+    .ghost-btn {
+      background: transparent;
+      border: 2px solid var(--surface);
+      color: var(--muted);
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    /* ── SHARED PAGE HEADER ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0 18px;
+      flex-shrink: 0;
+    }
+
+    .back-btn {
+      background: var(--surface);
+      border: none;
+      color: var(--text);
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: opacity 0.1s;
+    }
+
+    .back-btn:active { opacity: 0.7; }
+
+    .page-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+
+    /* ── CARD GRID ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    @media (min-width: 390px) {
+      .card-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (min-width: 700px) {
+      .card-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 16px 8px;
+      border-radius: 16px;
+      background: var(--surface);
+      border: 2.5px solid transparent;
+      cursor: pointer;
+      transition: transform 0.12s, opacity 0.12s;
+      min-height: 92px;
+      text-align: center;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .card:active {
+      transform: scale(0.9);
+      opacity: 0.75;
+    }
+
+    .card .card-emoji {
+      font-size: 2.5rem;
+      line-height: 1;
+    }
+
+    .card .card-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    /* per-category border accent */
+    .grid-feelings   .card:not(.else-card) { border-color: var(--feelings); }
+    .grid-food       .card:not(.else-card) { border-color: var(--food); }
+    .grid-activities .card:not(.else-card) { border-color: var(--activities); }
+    .grid-needs      .card:not(.else-card) { border-color: var(--needs); }
+    .grid-behaviour  .card:not(.else-card) { border-color: var(--behaviour); }
+
+    .card.else-card {
+      border-style: dashed;
+      border-color: var(--muted);
+      background: transparent;
+    }
+
+    .card.else-card .card-label { color: var(--muted); }
+
+    /* ── TEXT INPUT ── */
+    #textinput { gap: 14px; }
+
+    .free-label {
+      font-size: 1.05rem;
+      color: var(--muted);
+    }
+
+    textarea.free-input {
+      flex: 1;
+      width: 100%;
+      background: var(--surface);
+      border: 2.5px solid var(--muted);
+      border-radius: 14px;
+      color: var(--text);
+      font-size: 1.1rem;
+      font-family: inherit;
+      padding: 16px;
+      min-height: 140px;
+      resize: none;
+      outline: none;
+    }
+
+    textarea.free-input:focus { border-color: var(--text); }
+
+    .primary-btn {
+      width: 100%;
+      padding: 18px;
+      border-radius: 14px;
+      border: none;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: opacity 0.1s;
+      flex-shrink: 0;
+    }
+
+    .primary-btn:active { opacity: 0.8; }
+
+    /* ── CONFIRM ── */
+    #confirm {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 20px;
+      padding: 40px 24px;
+    }
+
+    .confirm-tick {
+      width: 82px;
+      height: 82px;
+      background: #22c55e;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      color: #fff;
+    }
+
+    .confirm-got {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #22c55e;
+    }
+
+    .confirm-emoji-big { font-size: 5rem; line-height: 1; }
+
+    .confirm-chosen {
+      font-size: 2rem;
+      font-weight: 800;
+      max-width: 320px;
+      line-height: 1.2;
+    }
+
+    .confirm-cat-label {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .confirm-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 340px;
+      margin-top: 8px;
+    }
+
+    .confirm-home-btn { background: #5b21b6; }
+
+    .secondary-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      border: 2px solid var(--surface);
+      background: transparent;
+      color: var(--muted);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: opacity 0.1s;
+    }
+
+    .secondary-btn:active { opacity: 0.7; }
+
+    /* ── HISTORY ── */
+    .history-toolbar {
+      justify-content: space-between;
+    }
+
+    .history-toolbar .page-title { flex: 1; }
+
+    .danger-ghost {
+      background: transparent;
+      border: 2px solid #ef4444;
+      color: #ef4444;
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .h-item {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 13px 15px;
+    }
+
+    .h-answer {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .h-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .h-empty {
+      text-align: center;
+      color: var(--muted);
+      margin: 60px auto;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .export-btn {
+      margin-top: 14px;
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 2px solid var(--surface);
+      background: transparent;
+      color: var(--text);
+      font-size: 0.95rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .export-btn:active { opacity: 0.7; }
+  </style>
+</head>
+<body>
+
+<!-- ════════ HOME ════════ -->
+<div id="home" class="screen active">
+  <div class="home-hero">
+    <span class="hero-icon">💬</span>
+    <h1>My Voice</h1>
+    <p>What do you want to say?</p>
+  </div>
+  <div class="cat-list">
+    <button class="cat-btn" data-cat="feelings" onclick="openCategory('feelings')">
+      <span class="btn-icon">💭</span>
+      <span class="btn-text">How I'm feeling</span>
+      <span class="btn-arrow">›</span>
+    </button>
+    <button class="cat-btn" data-cat="food" onclick="openCategory('food')">
+      <span class="btn-icon">🍽️</span>
+      <span class="btn-text">Food &amp; Drinks</span>
+      <span class="btn-arrow">›</span>
+    </button>
+    <button class="cat-btn" data-cat="activities" onclick="openCategory('activities')">
+      <span class="btn-icon">🎮</span>
+      <span class="btn-text">What I want to do</span>
+      <span class="btn-arrow">›</span>
+    </button>
+    <button class="cat-btn" data-cat="needs" onclick="openCategory('needs')">
+      <span class="btn-icon">🙋</span>
+      <span class="btn-text">What I need</span>
+      <span class="btn-arrow">›</span>
+    </button>
+    <button class="cat-btn" data-cat="behaviour" onclick="openCategory('behaviour')">
+      <span class="btn-icon">🗣️</span>
+      <span class="btn-text">How I am right now</span>
+      <span class="btn-arrow">›</span>
+    </button>
+  </div>
+  <div class="home-footer">
+    <button class="ghost-btn" onclick="showHistory()">📋 View history</button>
+  </div>
+</div>
+
+<!-- ════════ CATEGORY ════════ -->
+<div id="category" class="screen">
+  <div class="page-header">
+    <button class="back-btn" onclick="showHome()">← Back</button>
+    <div class="page-title" id="cat-title"></div>
+  </div>
+  <div class="card-grid" id="card-grid"></div>
+</div>
+
+<!-- ════════ TEXT INPUT ════════ -->
+<div id="textinput" class="screen">
+  <div class="page-header">
+    <button class="back-btn" id="ti-back">← Back</button>
+    <div class="page-title">Something else</div>
+  </div>
+  <div class="free-label">Type what you want to say:</div>
+  <textarea class="free-input" id="free-input" placeholder="Write it here..."></textarea>
+  <button class="primary-btn" id="ti-submit" onclick="submitFreeText()">Done ✓</button>
+</div>
+
+<!-- ════════ CONFIRM ════════ -->
+<div id="confirm" class="screen">
+  <div class="confirm-tick">✓</div>
+  <div class="confirm-got">Got it!</div>
+  <div class="confirm-emoji-big" id="conf-emoji"></div>
+  <div class="confirm-chosen" id="conf-label"></div>
+  <div class="confirm-cat-label" id="conf-cat"></div>
+  <div class="confirm-actions">
+    <button class="primary-btn confirm-home-btn" onclick="showHome()">Back to home</button>
+    <button class="secondary-btn" id="conf-again">Tell me something else</button>
+  </div>
+</div>
+
+<!-- ════════ HISTORY ════════ -->
+<div id="history" class="screen">
+  <div class="page-header history-toolbar">
+    <button class="back-btn" onclick="showHome()">← Back</button>
+    <div class="page-title">History</div>
+    <button class="danger-ghost" onclick="clearHistory()">Clear all</button>
+  </div>
+  <div class="history-list" id="history-list"></div>
+  <button class="export-btn" onclick="exportHistory()">⬇ Export as text (for reports)</button>
+</div>
+
+<script>
+  // Register service worker for offline use
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // ── DATA ──────────────────────────────────────────────────────────────────
+  const CATS = {
+    feelings: {
+      label: "How I'm feeling",
+      color: '#ec4899',
+      items: [
+        ['😄','happy'],       ['🤩','excited'],       ['😌','calm'],         ['😜','silly'],
+        ['🥰','loved'],       ['🌟','proud'],          ['😢','sad'],          ['😠','upset'],
+        ['😞','disappointed'],['😔','lonely'],         ['😡','angry'],        ['😤','frustrated'],
+        ['😒','annoyed'],     ['😰','anxious'],        ['😟','worried'],      ['😨','scared'],
+        ['🤯','overwhelmed'], ['😴','tired'],          ['😫','exhausted'],    ['💤','sleepy'],
+        ['🥱','bored'],       ['😣','hurting / pain'], ['🤒','sick'],         ['😕','confused'],
+      ]
+    },
+    food: {
+      label: 'Food & Drinks',
+      color: '#f97316',
+      items: [
+        ['🍕','pizza'],         ['🍝','pasta'],          ['🍗','nuggets'],       ['🍟','chips'],
+        ['🍔','burger'],        ['🌭','hot dog'],         ['🌮','tacos'],         ['🍚','rice'],
+        ['🍜','noodles'],       ['🍳','fried rice'],      ['🥪','sandwich'],      ['🍞','toast'],
+        ['🌯','wrap'],          ['🥣','cereal'],          ['🫕','porridge'],      ['🥞','pancakes'],
+        ['🍊','fruit'],         ['🍎','apple'],           ['🍌','banana'],        ['🍇','grapes'],
+        ['🍉','watermelon'],    ['🍓','strawberries'],    ['🫙','yoghurt'],       ['🧀','cheese'],
+        ['🍫','chocolate'],     ['🍬','lollies'],         ['🍪','biscuits'],      ['🎂','cake'],
+        ['🍦','ice cream'],     ['☕','hot chocolate'],   ['🫗','Milo'],          ['💧','water'],
+        ['🧃','juice'],         ['🥤','Coke'],            ['🥛','milk'],          ['🔥','something hot'],
+        ['🧊','something cold'],['🍭','something sweet'], ['🧂','something salty'],
+      ]
+    },
+    activities: {
+      label: 'What I want to do',
+      color: '#3b82f6',
+      items: [
+        ['📺','watch TV'],        ['▶️','YouTube'],          ['📱','TikTok'],         ['🎬','movies'],
+        ['🎵','listen to music'], ['🎨','Canva / art'],      ['🎥','CapCut / video'], ['🎮','games'],
+        ['🚶','go for a walk'],   ['🛒','go to the shops'],  ['🚗','go for a drive'], ['🏊','go swimming'],
+        ['🌳','go to a park'],    ['🏠','stay home'],        ['📚','read'],           ['😌','just relax'],
+        ['🤫','need quiet time'], ['👨','be with Dad'],      ['🙏','be alone'],
+      ]
+    },
+    needs: {
+      label: 'What I need',
+      color: '#22c55e',
+      items: [
+        ['🍽️','hungry'],         ['🥤','thirsty'],      ['🚽','need toilet'],   ['😴','tired / need rest'],
+        ['🙋','need help'],       ['🤗','want a hug'],   ['🧘','want space'],    ['😣','in pain'],
+        ['🤒','feel sick'],       ['🤷','not sure what I need'],
+      ]
+    },
+    behaviour: {
+      label: 'How I am right now',
+      color: '#a855f7',
+      items: [
+        ['🚪','want to be left alone'], ['👫','want company'],       ['🤫','want it quiet'],
+        ['✅',"I'm okay"],              ['🧘','need to calm down'],  ['🌊','feel overwhelmed'],
+        ['🗺️','want to go somewhere'],  ['🏠',"don't want to go out"],['📅',"what's happening today?"],
+      ]
+    },
+  };
+
+  let activeCat = null;
+
+  // ── NAVIGATION ────────────────────────────────────────────────────────────
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function showHome() {
+    activeCat = null;
+    showScreen('home');
+  }
+
+  function openCategory(key) {
+    activeCat = key;
+    const cat = CATS[key];
+
+    document.getElementById('cat-title').textContent = cat.label;
+
+    const grid = document.getElementById('card-grid');
+    grid.className = `card-grid grid-${key}`;
+    grid.innerHTML = '';
+
+    cat.items.forEach(([emoji, label]) => {
+      const btn = document.createElement('button');
+      btn.className = 'card';
+      btn.innerHTML = `<span class="card-emoji">${emoji}</span><span class="card-label">${label}</span>`;
+      btn.onclick = () => choose(emoji, label);
+      grid.appendChild(btn);
+    });
+
+    // Always-last "Something else" card
+    const elseBtn = document.createElement('button');
+    elseBtn.className = 'card else-card';
+    elseBtn.innerHTML = `<span class="card-emoji">✏️</span><span class="card-label">Something else...</span>`;
+    elseBtn.onclick = openTextInput;
+    grid.appendChild(elseBtn);
+
+    showScreen('category');
+  }
+
+  function choose(emoji, label) {
+    saveEntry(emoji, label);
+    showConfirm(emoji, label);
+  }
+
+  // ── TEXT INPUT ────────────────────────────────────────────────────────────
+  function openTextInput() {
+    const cat = CATS[activeCat];
+    document.getElementById('free-input').value = '';
+    document.getElementById('ti-submit').style.background = cat.color;
+    document.getElementById('ti-back').onclick = () => openCategory(activeCat);
+    showScreen('textinput');
+    setTimeout(() => document.getElementById('free-input').focus(), 300);
+  }
+
+  function submitFreeText() {
+    const txt = document.getElementById('free-input').value.trim();
+    if (!txt) return;
+    saveEntry('✏️', txt);
+    showConfirm('✏️', txt);
+  }
+
+  // ── CONFIRM ───────────────────────────────────────────────────────────────
+  function showConfirm(emoji, label) {
+    const cat = CATS[activeCat];
+    document.getElementById('conf-emoji').textContent = emoji;
+    document.getElementById('conf-label').textContent = label;
+    document.getElementById('conf-cat').textContent = cat ? cat.label : '';
+    document.getElementById('conf-again').onclick = () => openCategory(activeCat);
+    showScreen('confirm');
+  }
+
+  // ── HISTORY ───────────────────────────────────────────────────────────────
+  function loadHistory() {
+    try { return JSON.parse(localStorage.getItem('mv_history') || '[]'); }
+    catch { return []; }
+  }
+
+  function saveEntry(emoji, label) {
+    const cat = CATS[activeCat];
+    const history = loadHistory();
+    history.unshift({
+      ts:       Date.now(),
+      category: cat ? cat.label : '',
+      emoji,
+      label,
+    });
+    // Keep up to 500 entries
+    localStorage.setItem('mv_history', JSON.stringify(history.slice(0, 500)));
+  }
+
+  function showHistory() {
+    const history = loadHistory();
+    const list = document.getElementById('history-list');
+
+    if (!history.length) {
+      list.innerHTML = '<div class="h-empty">No history yet.<br>Start by tapping a category on the home screen.</div>';
+    } else {
+      list.innerHTML = history.map(e => {
+        const d  = new Date(e.ts);
+        const ds = d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+        const ts = d.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+        return `<div class="h-item">
+          <div class="h-answer">${e.emoji} ${e.label}</div>
+          <div class="h-meta">${e.category} &bull; ${ds} at ${ts}</div>
+        </div>`;
+      }).join('');
+    }
+
+    showScreen('history');
+  }
+
+  function clearHistory() {
+    if (!confirm('Clear all history? This cannot be undone.')) return;
+    localStorage.removeItem('mv_history');
+    showHistory();
+  }
+
+  function exportHistory() {
+    const history = loadHistory();
+    if (!history.length) { alert('No history to export.'); return; }
+
+    const lines = history.map(e => {
+      const d = new Date(e.ts);
+      const date = d.toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const time = d.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+      return `${date} ${time} | ${e.category} | ${e.label}`;
+    }).join('\n');
+
+    const blob = new Blob([lines], { type: 'text/plain' });
+    const a = Object.assign(document.createElement('a'), {
+      href:     URL.createObjectURL(blob),
+      download: `my-voice-history-${new Date().toLocaleDateString('en-CA')}.txt`,
+    });
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+</script>
+</body>
+</html>

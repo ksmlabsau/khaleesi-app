@@ -1,0 +1,19 @@
+{
+  "name": "My Voice",
+  "short_name": "My Voice",
+  "description": "Khaleesi's communication app",
+  "start_url": "/khaleesi-app/",
+  "scope": "/khaleesi-app/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#111827",
+  "theme_color": "#5b21b6",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
