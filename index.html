@@ -301,6 +301,138 @@
       margin-top: 4px;
     }
 
+    /* ── WIZARD ── */
+    #wizard { gap: 0; padding: 16px 16px 120px; }
+
+    .wizard-progress {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+    .wiz-dot {
+      flex: 1;
+      height: 5px;
+      border-radius: 3px;
+      background: var(--surface);
+      transition: background 0.2s;
+    }
+    .wiz-dot.done  { background: #f59e0b; }
+    .wiz-dot.active{ background: #fde68a; }
+
+    .wizard-step-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 6px;
+      flex-shrink: 0;
+    }
+
+    .wizard-question {
+      font-size: 1.5rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 18px;
+      line-height: 1.25;
+      flex-shrink: 0;
+    }
+
+    .wizard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    @media (min-width: 390px) { .wizard-grid { grid-template-columns: repeat(3, 1fr); } }
+
+    .wiz-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 10px 16px 34px;
+      background: linear-gradient(transparent, var(--bg) 40%);
+      z-index: 50;
+      display: flex;
+      gap: 10px;
+    }
+    .wiz-skip {
+      flex: 0 0 auto;
+      padding: 16px 20px;
+      border-radius: 14px;
+      border: 2px solid var(--surface);
+      background: transparent;
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .wiz-next {
+      flex: 1;
+      padding: 18px;
+      border-radius: 14px;
+      border: none;
+      background: #f59e0b;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.1s;
+    }
+    .wiz-next:active { opacity: 0.8; }
+
+    /* ── DAY SUMMARY ── */
+    #daysummary {
+      gap: 14px;
+      padding: 20px 16px 140px;
+      align-items: stretch;
+    }
+    .dsummary-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .dsummary-section {
+      background: var(--surface);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .dsummary-heading {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #f59e0b;
+      padding: 10px 14px 4px;
+    }
+    .dsummary-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 6px 14px 12px;
+    }
+    .dsummary-chip {
+      background: color-mix(in srgb, #f59e0b 18%, var(--surface));
+      border: 1.5px solid #f59e0b;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .dsummary-skip {
+      font-size: 0.82rem;
+      color: var(--muted);
+      padding: 6px 14px 10px;
+    }
+    .dsummary-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 10px 16px 34px;
+      background: linear-gradient(transparent, var(--bg) 40%);
+      z-index: 50;
+      display: flex;
+      gap: 10px;
+    }
+
     /* ── TEXT INPUT ── */
     #textinput { gap: 14px; }
 
@@ -537,6 +669,36 @@
   </div>
 </div>
 
+<!-- ════════ WIZARD (Talking about my day) ════════ -->
+<div id="wizard" class="screen">
+  <div class="page-header">
+    <button class="back-btn" onclick="wizBack()">← Back</button>
+    <div class="page-title">Talking about my day</div>
+  </div>
+  <div class="wizard-progress" id="wiz-progress"></div>
+  <div class="wizard-step-label" id="wiz-step-label"></div>
+  <div class="wizard-question" id="wiz-question"></div>
+  <div class="wizard-grid" id="wiz-grid"></div>
+  <div class="wiz-bar">
+    <button class="wiz-skip" onclick="wizSkip()">Skip</button>
+    <button class="wiz-next" onclick="wizNext()">Next →</button>
+  </div>
+</div>
+
+<!-- ════════ DAY SUMMARY ════════ -->
+<div id="daysummary" class="screen">
+  <div class="page-header">
+    <button class="back-btn" onclick="showHome()">← Home</button>
+    <div class="page-title">My Day</div>
+  </div>
+  <div class="dsummary-title">Here's your day 🌟</div>
+  <div id="dsummary-body"></div>
+  <div class="dsummary-bar">
+    <button class="primary-btn share-btn" id="dsummary-share" style="background:#0ea5e9;flex:0 0 auto;padding:18px 22px;display:none" onclick="shareDaySummary()">&#x2B06; Share</button>
+    <button class="primary-btn" style="background:#f59e0b;flex:1" onclick="showHome()">Done ✓</button>
+  </div>
+</div>
+
 <!-- ════════ TEXT INPUT ════════ -->
 <div id="textinput" class="screen">
   <div class="page-header">
@@ -605,7 +767,19 @@
         emoji,
         label,
       }),
-    }).catch(() => {}); // fire-and-forget, never block UI
+    }).catch(() => {});
+  }
+
+  function notifyRaw(category, message) {
+    fetch(NOTIFY_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0bm9xemVrbXd0YXdteXppZ3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMzc5ODksImV4cCI6MjA5MDgxMzk4OX0.cremdPN06EPE-P2AqVxw3x7n36byeZxkvRt8pmHfyyE',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0bm9xemVrbXd0YXdteXppZ3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMzc5ODksImV4cCI6MjA5MDgxMzk4OX0.cremdPN06EPE-P2AqVxw3x7n36byeZxkvRt8pmHfyyE',
+      },
+      body: JSON.stringify({ category, emoji: '📅', label: message }),
+    }).catch(() => {});
   }
 
   // ── DATA ──────────────────────────────────────────────────────────────────
@@ -704,6 +878,92 @@
   let selectedCards = [];
   let confirmTimer  = null;
 
+  // ── DAILY WIZARD DATA ────────────────────────────────────────────────────
+  const DAILY_STEPS = [
+    {
+      id: 'event',
+      question: 'What was the event?',
+      items: [
+        ['🏫','school'],        ['🏠','at home'],       ['🚗','out and about'],
+        ['🛒','at the shops'],  ['🌳','at the park'],   ['🏊','swimming'],
+        ['🚌','on the bus'],    ['🎉','a special event'],['👥','with support worker'],
+      ]
+    },
+    {
+      id: 'doing',
+      question: 'What were you doing?',
+      items: [
+        ['🍽️','lunch'],         ['🧣','recess / snack'], ['☕','break time'],
+        ['🛝','playground'],    ['📚','in class'],       ['🎨','art or craft'],
+        ['🎮','free time'],     ['🏃','sport / PE'],     ['🎵','music'],
+        ['🖍️','drawing'],       ['📖','reading'],        ['🤸','exercise'],
+      ]
+    },
+    {
+      id: 'who',
+      question: 'Who were you with?',
+      items: [
+        ['👩','Mum'],           ['👨','Dad'],            ['👩‍🏫','teacher'],
+        ['👥','support worker'],['👦','friends'],        ['🙋','classmates'],
+        ['🐕','just me'],       ['👴','family'],
+      ]
+    },
+    {
+      id: 'where',
+      question: 'Where were you?',
+      items: [
+        ['🏫','classroom'],     ['🛝','playground'],     ['🍽️','canteen'],
+        ['🚌','on the bus'],    ['🏠','at home'],        ['🌳','park'],
+        ['🛒','shops'],         ['🏊','pool'],           ['🚗','in the car'],
+      ]
+    },
+    {
+      id: 'happened',
+      question: 'What happened?',
+      items: [
+        ['✅','it went well'],   ['😊','I did something good'],['⭐','I did something great'],
+        ['😞','it was hard'],   ['😤','I got upset'],    ['😢','I cried'],
+        ['🤷','I got confused'],['😨','I was scared'],   ['🤕','I got hurt'],
+        ['😠','someone was mean'],['🙁','I felt left out'],['🤢','I felt sick'],
+      ]
+    },
+    {
+      id: 'liked',
+      question: 'What did I like?',
+      items: [
+        ['🎉','it was fun'],    ['👫','being with friends'],['🕹️','games'],
+        ['🎨','art / craft'],   ['🍕','the food'],       ['🌳','being outside'],
+        ['🏃','running around'],['🎵','music'],           ['📖','learning something'],
+        ['😌','it was calm'],   ['🤗','felt supported'], ['💪','I did well'],
+      ]
+    },
+    {
+      id: 'disliked',
+      question: "What didn't I like?",
+      items: [
+        ['🔊','too loud'],      ['💡','too bright'],     ['😰','too many people'],
+        ['😣','too much going on'],['🏃','I wanted to leave'],['🏡','I wanted to go home'],
+        ['😒','it was boring'], ['😓','it was stressful'],['😠','someone was mean'],
+        ['🙁','I felt left out'],['🤷','I didn\'t understand'],['👎','I didn\'t like it'],
+      ]
+    },
+    {
+      id: 'emotion',
+      question: 'My emotion today was...',
+      items: [
+        ['😄','happy'],         ['🤩','excited'],        ['😌','calm'],
+        ['😢','sad'],           ['😠','angry'],          ['😤','frustrated'],
+        ['😰','anxious'],       ['😟','worried'],        ['😨','scared'],
+        ['🤯','overwhelmed'],   ['😴','tired'],          ['🥱','bored'],
+        ['🥰','loved'],         ['🌟','proud'],          ['😕','confused'],
+      ]
+    },
+  ];
+
+  let wizStep    = 0;
+  let wizAnswers = {}; // { stepId: [{emoji,label},...] }
+  let wizSel     = []; // selections for current step
+
   // ── NAVIGATION ────────────────────────────────────────────────────────────
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -719,6 +979,7 @@
   }
 
   function openCategory(key) {
+    if (key === 'daily') { openWizard(); return; }
     activeCat     = key;
     selectedCards = [];
     const cat = CATS[key];
@@ -746,6 +1007,152 @@
 
     updateSendBar();
     showScreen('category');
+  }
+
+  // ── DAILY WIZARD ─────────────────────────────────────────────────────────
+  function openWizard() {
+    activeCat  = 'daily';
+    wizStep    = 0;
+    wizAnswers = {};
+    wizSel     = [];
+    renderWizStep();
+    showScreen('wizard');
+  }
+
+  function renderWizStep() {
+    const step  = DAILY_STEPS[wizStep];
+    const total = DAILY_STEPS.length;
+
+    // progress dots
+    document.getElementById('wiz-progress').innerHTML =
+      DAILY_STEPS.map((_, i) =>
+        `<div class="wiz-dot ${i < wizStep ? 'done' : i === wizStep ? 'active' : ''}"></div>`
+      ).join('');
+
+    document.getElementById('wiz-step-label').textContent = `Step ${wizStep + 1} of ${total}`;
+    document.getElementById('wiz-question').textContent   = step.question;
+
+    const grid = document.getElementById('wiz-grid');
+    grid.innerHTML = '';
+    wizSel = wizAnswers[step.id] || [];
+
+    step.items.forEach(([emoji, label]) => {
+      const btn = document.createElement('button');
+      const isSelected = wizSel.some(c => c.emoji === emoji && c.label === label);
+      btn.className = 'card' + (isSelected ? ' selected' : '');
+      btn.style.borderColor = '#f59e0b';
+      if (isSelected) btn.style.background = 'color-mix(in srgb, #f59e0b 22%, var(--surface))';
+      btn.innerHTML = `<span class="card-emoji">${emoji}</span><span class="card-label">${label}</span>`;
+      btn.onclick = () => wizToggle(emoji, label, btn);
+      grid.appendChild(btn);
+    });
+  }
+
+  function wizToggle(emoji, label, btn) {
+    const idx = wizSel.findIndex(c => c.emoji === emoji && c.label === label);
+    if (idx >= 0) {
+      wizSel.splice(idx, 1);
+      btn.classList.remove('selected');
+      btn.style.background = '';
+    } else {
+      wizSel.push({ emoji, label });
+      btn.classList.add('selected');
+      btn.style.background = 'color-mix(in srgb, #f59e0b 22%, var(--surface))';
+    }
+  }
+
+  function wizNext() {
+    const step = DAILY_STEPS[wizStep];
+    wizAnswers[step.id] = wizSel.slice();
+    if (wizStep < DAILY_STEPS.length - 1) {
+      wizStep++;
+      wizSel = wizAnswers[DAILY_STEPS[wizStep].id] || [];
+      renderWizStep();
+      window.scrollTo(0, 0);
+    } else {
+      finishWizard();
+    }
+  }
+
+  function wizSkip() {
+    wizAnswers[DAILY_STEPS[wizStep].id] = [];
+    if (wizStep < DAILY_STEPS.length - 1) {
+      wizStep++;
+      wizSel = [];
+      renderWizStep();
+      window.scrollTo(0, 0);
+    } else {
+      finishWizard();
+    }
+  }
+
+  function wizBack() {
+    if (wizStep > 0) {
+      wizAnswers[DAILY_STEPS[wizStep].id] = wizSel.slice();
+      wizStep--;
+      wizSel = wizAnswers[DAILY_STEPS[wizStep].id] || [];
+      renderWizStep();
+      window.scrollTo(0, 0);
+    } else {
+      showHome();
+    }
+  }
+
+  function finishWizard() {
+    // Save all answered items to history and notify
+    const ts = Date.now();
+    Object.entries(wizAnswers).forEach(([stepId, items]) => {
+      const stepDef = DAILY_STEPS.find(s => s.id === stepId);
+      items.forEach(({ emoji, label }) => {
+        const history = loadHistory();
+        history.unshift({ ts, category: 'Talking about my day', emoji, label });
+        localStorage.setItem('mv_history', JSON.stringify(history.slice(0, 500)));
+      });
+    });
+
+    // Send one combined Telegram notification
+    const lines = DAILY_STEPS
+      .map(s => {
+        const picks = wizAnswers[s.id] || [];
+        if (!picks.length) return null;
+        return `${s.question}\n` + picks.map(c => `  ${c.emoji} ${c.label}`).join('\n');
+      })
+      .filter(Boolean)
+      .join('\n\n');
+    if (lines) notifyRaw('Talking about my day', lines);
+
+    buildDaySummary();
+    showScreen('daysummary');
+  }
+
+  function buildDaySummary() {
+    const body = document.getElementById('dsummary-body');
+    body.innerHTML = DAILY_STEPS.map(step => {
+      const picks = wizAnswers[step.id] || [];
+      return `<div class="dsummary-section">
+        <div class="dsummary-heading">${step.question}</div>
+        ${ picks.length
+          ? `<div class="dsummary-row">${picks.map(c =>
+              `<span class="dsummary-chip">${c.emoji} ${c.label}</span>`).join('')}</div>`
+          : `<div class="dsummary-skip">skipped</div>`
+        }
+      </div>`;
+    }).join('');
+
+    const shareBtn = document.getElementById('dsummary-share');
+    shareBtn.style.display = navigator.share ? 'inline-flex' : 'none';
+  }
+
+  function shareDaySummary() {
+    const lines = DAILY_STEPS
+      .map(s => {
+        const picks = wizAnswers[s.id] || [];
+        if (!picks.length) return null;
+        return `${s.question}\n` + picks.map(c => `  ${c.emoji} ${c.label}`).join('\n');
+      })
+      .filter(Boolean)
+      .join('\n\n');
+    navigator.share({ title: 'My Day', text: lines }).catch(() => {});
   }
 
   // ── MULTI-SELECT ──────────────────────────────────────────────────────────
