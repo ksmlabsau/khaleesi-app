@@ -553,6 +553,7 @@
   <div class="confirm-redirect-hint">Going home in a moment...</div>
   <div class="confirm-actions">
     <button class="primary-btn confirm-home-btn" onclick="showHome()">Back to home</button>
+    <button class="primary-btn share-btn" id="conf-share" style="background:#0ea5e9;display:none" onclick="shareSelection()">&#x2B06; Share this</button>
     <button class="secondary-btn" id="conf-again">Tell me something else</button>
   </div>
 </div>
@@ -813,8 +814,23 @@
       if (confirmTimer) { clearTimeout(confirmTimer); confirmTimer = null; }
       openCategory(activeCat);
     };
+    // show share button only if Web Share API available
+    const shareBtn = document.getElementById('conf-share');
+    shareBtn.style.display = navigator.share ? 'block' : 'none';
+    shareBtn._items = items;
+    shareBtn._cat   = cat ? cat.label : '';
     showScreen('confirm');
     confirmTimer = setTimeout(showHome, 3000);
+  }
+
+  function shareSelection() {
+    if (confirmTimer) { clearTimeout(confirmTimer); confirmTimer = null; }
+    const btn   = document.getElementById('conf-share');
+    const items = btn._items || [];
+    const cat   = btn._cat   || '';
+    const lines = items.map(({ emoji, label }) => `${emoji} ${label}`).join('\n');
+    const text  = cat ? `${cat}:\n${lines}` : lines;
+    navigator.share({ text }).catch(() => {});
   }
 
   // ── HISTORY ───────────────────────────────────────────────────────────────
