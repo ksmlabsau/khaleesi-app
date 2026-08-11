@@ -24,6 +24,7 @@
       --needs:      #22c55e;
       --behaviour:  #a855f7;
       --upset:      #ef4444;
+      --daily:      #f59e0b;
       --bg:         #111827;
       --surface:    #1f2937;
       --text:       #f9fafb;
@@ -124,6 +125,7 @@
     .cat-btn[data-cat="needs"]      { background: var(--needs); }
     .cat-btn[data-cat="behaviour"]  { background: var(--behaviour); }
     .cat-btn[data-cat="upset"]       { background: var(--upset); }
+    .cat-btn[data-cat="daily"]       { background: var(--daily); }
 
     .home-footer {
       margin-top: 28px;
@@ -225,6 +227,7 @@
     .grid-needs      .card:not(.else-card) { border-color: var(--needs); }
     .grid-behaviour  .card:not(.else-card) { border-color: var(--behaviour); }
     .grid-upset      .card:not(.else-card) { border-color: var(--upset); }
+    .grid-daily      .card:not(.else-card) { border-color: var(--daily); }
 
     .card.else-card {
       border-style: dashed;
@@ -233,6 +236,66 @@
     }
 
     .card.else-card .card-label { color: var(--muted); }
+
+    /* ── SELECTED CARD ── */
+    .card.selected {
+      position: relative;
+    }
+    .card.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 5px;
+      right: 6px;
+      width: 20px;
+      height: 20px;
+      background: #22c55e;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 0.72rem;
+      font-weight: 800;
+      line-height: 20px;
+      text-align: center;
+    }
+    .grid-feelings   .card.selected { background: color-mix(in srgb, var(--feelings) 22%, var(--surface)); }
+    .grid-food       .card.selected { background: color-mix(in srgb, var(--food) 22%, var(--surface)); }
+    .grid-activities .card.selected { background: color-mix(in srgb, var(--activities) 22%, var(--surface)); }
+    .grid-needs      .card.selected { background: color-mix(in srgb, var(--needs) 22%, var(--surface)); }
+    .grid-behaviour  .card.selected { background: color-mix(in srgb, var(--behaviour) 22%, var(--surface)); }
+    .grid-upset      .card.selected { background: color-mix(in srgb, var(--upset) 22%, var(--surface)); }
+    .grid-daily      .card.selected { background: color-mix(in srgb, var(--daily) 22%, var(--surface)); }
+
+    /* ── SEND BAR ── */
+    .send-bar {
+      position: sticky;
+      bottom: 0;
+      margin-top: 14px;
+      padding: 14px 0 32px;
+      background: linear-gradient(transparent, var(--bg) 35%);
+      display: none;
+    }
+    .send-bar.visible { display: block; }
+
+    /* ── CONFIRM ITEMS ── */
+    .conf-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      max-width: 320px;
+    }
+    .conf-item {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 13px 18px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-align: center;
+    }
+    .confirm-redirect-hint {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
 
     /* ── TEXT INPUT ── */
     #textinput { gap: 14px; }
@@ -447,6 +510,11 @@
       <span class="btn-text">How I am right now</span>
       <span class="btn-arrow">›</span>
     </button>
+    <button class="cat-btn" data-cat="daily" onclick="openCategory('daily')">
+      <span class="btn-icon">📅</span>
+      <span class="btn-text">Talking about my day</span>
+      <span class="btn-arrow">›</span>
+    </button>
   </div>
   <div class="home-footer">
     <button class="ghost-btn" onclick="showHistory()">📋 View history</button>
@@ -460,6 +528,9 @@
     <div class="page-title" id="cat-title"></div>
   </div>
   <div class="card-grid" id="card-grid"></div>
+  <div class="send-bar" id="send-bar">
+    <button class="primary-btn" id="send-btn" onclick="sendSelected()">Send</button>
+  </div>
 </div>
 
 <!-- ════════ TEXT INPUT ════════ -->
@@ -477,9 +548,9 @@
 <div id="confirm" class="screen">
   <div class="confirm-tick">✓</div>
   <div class="confirm-got">Got it!</div>
-  <div class="confirm-emoji-big" id="conf-emoji"></div>
-  <div class="confirm-chosen" id="conf-label"></div>
+  <div class="conf-items-list" id="conf-items"></div>
   <div class="confirm-cat-label" id="conf-cat"></div>
+  <div class="confirm-redirect-hint">Going home in a moment...</div>
   <div class="confirm-actions">
     <button class="primary-btn confirm-home-btn" onclick="showHome()">Back to home</button>
     <button class="secondary-btn" id="conf-again">Tell me something else</button>
@@ -513,7 +584,7 @@
   ]);
 
   // All selections from these categories notify (Needs = all urgent)
-  const NOTIFY_CATEGORIES = new Set(["What I need", "Why am I upset?"]);
+  const NOTIFY_CATEGORIES = new Set(["What I need", "Why am I upset?", "Talking about my day"]);
 
   function notifyDad(emoji, label) {
     const cat = CATS[activeCat];
@@ -569,7 +640,7 @@
         ['📺','watch TV'],        ['▶️','YouTube'],          ['📱','TikTok'],         ['🎬','movies'],
         ['🎵','listen to music'], ['🎨','Canva / art'],      ['🎥','CapCut / video'], ['🎮','games'],
         ['🚶','go for a walk'],   ['🛒','go to the shops'],  ['🚗','go for a drive'], ['🏊','go swimming'],
-        ['🌳','go to a park'],    ['🏠','stay home'],        ['📚','read'],           ['😌','just relax'],
+        ['🌳','go to a park'],    ['🏠','stay home'],        ['📚','read'],           ['🖍️','drawing'],        ['😌','just relax'],
         ['🤫','need quiet time'], ['👨','be with Dad'],      ['🙏','be alone'],
       ]
     },
@@ -600,11 +671,33 @@
         ['🚪','want to be left alone'], ['👫','want company'],       ['🤫','want it quiet'],
         ['✅',"I'm okay"],              ['🧘','need to calm down'],  ['🌊','feel overwhelmed'],
         ['🗺️','want to go somewhere'],  ['🏠',"don't want to go out"],['📅',"what's happening today?"],
+        ['📚','want to read'],           ['🖍️','want to draw'],
+      ]
+    },
+    daily: {
+      label: 'Talking about my day',
+      color: '#f59e0b',
+      items: [
+        // Where / who with
+        ['🏫','school'],              ['🏠','at home'],            ['🚗','out and about'],      ['👥','with support worker'],
+        // Activities
+        ['🍽️','lunch'],               ['🧣','recess / snack'],     ['☕','break time'],          ['🛝','playground'],
+        ['🌳','at the park'],         ['🛒','at the shops'],        ['🚌','on the bus'],         ['🎨','art or craft'],
+        ['📚','in class'],            ['🎮','free time'],           ['🏊','swimming'],
+        // How it went
+        ['😊','it was good'],         ['😐','it was okay'],         ['😞','it was hard'],        ['⭐','I did something great'],
+        // Difficulties
+        ['🔊','too loud'],            ['💡','too bright'],          ['😰','too many people'],    ['😣','it was too much'],
+        ['🏃','I wanted to leave'],   ['🏡','I wanted to go home'], ['😤','I got upset'],        ['😢','I cried'],
+        ['🤷','I didn\'t understand'],['👎','I didn\'t like it'],  ['🙁','someone was mean'],   ['😔','I felt left out'],
+        ['😨','I was scared'],
       ]
     },
   };
 
-  let activeCat = null;
+  let activeCat     = null;
+  let selectedCards = [];
+  let confirmTimer  = null;
 
   // ── NAVIGATION ────────────────────────────────────────────────────────────
   function showScreen(id) {
@@ -614,12 +707,15 @@
   }
 
   function showHome() {
-    activeCat = null;
+    if (confirmTimer) { clearTimeout(confirmTimer); confirmTimer = null; }
+    activeCat     = null;
+    selectedCards = [];
     showScreen('home');
   }
 
   function openCategory(key) {
-    activeCat = key;
+    activeCat     = key;
+    selectedCards = [];
     const cat = CATS[key];
 
     document.getElementById('cat-title').textContent = cat.label;
@@ -632,7 +728,7 @@
       const btn = document.createElement('button');
       btn.className = 'card';
       btn.innerHTML = `<span class="card-emoji">${emoji}</span><span class="card-label">${label}</span>`;
-      btn.onclick = () => choose(emoji, label);
+      btn.onclick = () => toggleCard(emoji, label, btn);
       grid.appendChild(btn);
     });
 
@@ -643,16 +739,48 @@
     elseBtn.onclick = openTextInput;
     grid.appendChild(elseBtn);
 
+    updateSendBar();
     showScreen('category');
   }
 
-  function choose(emoji, label) {
-    saveEntry(emoji, label);
-    const cat = CATS[activeCat];
-    if (NOTIFY_LABELS.has(label) || NOTIFY_CATEGORIES.has(cat ? cat.label : '')) {
-      notifyDad(emoji, label);
+  // ── MULTI-SELECT ──────────────────────────────────────────────────────────
+  function toggleCard(emoji, label, btn) {
+    const idx = selectedCards.findIndex(c => c.emoji === emoji && c.label === label);
+    if (idx >= 0) {
+      selectedCards.splice(idx, 1);
+      btn.classList.remove('selected');
+    } else {
+      selectedCards.push({ emoji, label });
+      btn.classList.add('selected');
     }
-    showConfirm(emoji, label);
+    updateSendBar();
+  }
+
+  function updateSendBar() {
+    const bar = document.getElementById('send-bar');
+    const btn = document.getElementById('send-btn');
+    const n   = selectedCards.length;
+    if (n > 0) {
+      bar.classList.add('visible');
+      btn.textContent = n === 1 ? 'Send (1 thing)' : `Send (${n} things)`;
+    } else {
+      bar.classList.remove('visible');
+    }
+  }
+
+  function sendSelected() {
+    if (!selectedCards.length) return;
+    const cat       = CATS[activeCat];
+    const catNotify = NOTIFY_CATEGORIES.has(cat ? cat.label : '');
+    const toSend    = selectedCards.slice();
+    toSend.forEach(({ emoji, label }) => {
+      saveEntry(emoji, label);
+      if (catNotify || NOTIFY_LABELS.has(label)) {
+        notifyDad(emoji, label);
+      }
+    });
+    selectedCards = [];
+    showConfirm(toSend, cat);
   }
 
   // ── TEXT INPUT ────────────────────────────────────────────────────────────
@@ -668,19 +796,25 @@
   function submitFreeText() {
     const txt = document.getElementById('free-input').value.trim();
     if (!txt) return;
+    const cat = CATS[activeCat];
     saveEntry('✏️', txt);
-    notifyDad('✏️', txt); // always notify on free text
-    showConfirm('✏️', txt);
+    notifyDad('✏️', txt);
+    showConfirm([{ emoji: '✏️', label: txt }], cat);
   }
 
   // ── CONFIRM ───────────────────────────────────────────────────────────────
-  function showConfirm(emoji, label) {
-    const cat = CATS[activeCat];
-    document.getElementById('conf-emoji').textContent = emoji;
-    document.getElementById('conf-label').textContent = label;
+  function showConfirm(items, cat) {
+    if (confirmTimer) { clearTimeout(confirmTimer); confirmTimer = null; }
+    document.getElementById('conf-items').innerHTML = items.map(({ emoji, label }) =>
+      `<div class="conf-item">${emoji} ${label}</div>`
+    ).join('');
     document.getElementById('conf-cat').textContent = cat ? cat.label : '';
-    document.getElementById('conf-again').onclick = () => openCategory(activeCat);
+    document.getElementById('conf-again').onclick = () => {
+      if (confirmTimer) { clearTimeout(confirmTimer); confirmTimer = null; }
+      openCategory(activeCat);
+    };
     showScreen('confirm');
+    confirmTimer = setTimeout(showHome, 3000);
   }
 
   // ── HISTORY ───────────────────────────────────────────────────────────────
