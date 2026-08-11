@@ -266,14 +266,18 @@
 
     /* ── SEND BAR ── */
     .send-bar {
-      position: sticky;
+      position: fixed;
       bottom: 0;
-      margin-top: 14px;
-      padding: 14px 0 32px;
-      background: linear-gradient(transparent, var(--bg) 35%);
+      left: 0;
+      right: 0;
+      padding: 12px 16px 36px;
+      background: linear-gradient(transparent, var(--bg) 40%);
       display: none;
+      z-index: 50;
     }
     .send-bar.visible { display: block; }
+    /* extra bottom space so last card isn't hidden behind send bar */
+    #category.has-send { padding-bottom: 110px; }
 
     /* ── CONFIRM ITEMS ── */
     .conf-items-list {
@@ -760,12 +764,15 @@
   function updateSendBar() {
     const bar = document.getElementById('send-bar');
     const btn = document.getElementById('send-btn');
+    const cat = document.getElementById('category');
     const n   = selectedCards.length;
     if (n > 0) {
       bar.classList.add('visible');
+      cat.classList.add('has-send');
       btn.textContent = n === 1 ? 'Send (1 thing)' : `Send (${n} things)`;
     } else {
       bar.classList.remove('visible');
+      cat.classList.remove('has-send');
     }
   }
 

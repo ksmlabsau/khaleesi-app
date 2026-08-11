@@ -1,4 +1,4 @@
-const CACHE = 'myvoice-v1';
+const CACHE = 'myvoice-v3';
 
 self.addEventListener('install', e => {
   const base = self.registration.scope;
