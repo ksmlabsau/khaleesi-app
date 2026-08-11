@@ -679,6 +679,10 @@
   <div class="wizard-step-label" id="wiz-step-label"></div>
   <div class="wizard-question" id="wiz-question"></div>
   <div class="wizard-grid" id="wiz-grid"></div>
+  <div id="wiz-freetext-wrap" style="display:none;margin-top:14px;">
+    <div style="font-size:0.85rem;color:var(--muted);margin-bottom:8px;">Type what happened:</div>
+    <textarea id="wiz-freetext" class="free-input" placeholder="Write it here..." style="min-height:110px;border-color:#f59e0b;"></textarea>
+  </div>
   <div class="wiz-bar">
     <button class="wiz-skip" onclick="wizSkip()">Skip</button>
     <button class="wiz-next" onclick="wizNext()">Next →</button>
@@ -915,17 +919,15 @@
         ['🏫','classroom'],     ['🛝','playground'],     ['🍽️','canteen'],
         ['🚌','on the bus'],    ['🏠','at home'],        ['🌳','park'],
         ['🛒','shops'],         ['🏊','pool'],           ['🚗','in the car'],
+        ['🏘️','Valentine'],     ['🏙️','Charlestown'],    ['🌊','Warners Bay'],
+        ['🏗️','Newcastle'],
       ]
     },
     {
       id: 'happened',
       question: 'What happened?',
-      items: [
-        ['✅','it went well'],   ['😊','I did something good'],['⭐','I did something great'],
-        ['😞','it was hard'],   ['😤','I got upset'],    ['😢','I cried'],
-        ['🤷','I got confused'],['😨','I was scared'],   ['🤕','I got hurt'],
-        ['😠','someone was mean'],['🙁','I felt left out'],['🤢','I felt sick'],
-      ]
+      freeText: true,
+      items: []
     },
     {
       id: 'liked',
@@ -1034,7 +1036,7 @@
 
     const grid = document.getElementById('wiz-grid');
     grid.innerHTML = '';
-    wizSel = wizAnswers[step.id] || [];
+    wizSel = (wizAnswers[step.id] || []).filter(c => c.emoji !== '✏️');
 
     step.items.forEach(([emoji, label]) => {
       const btn = document.createElement('button');
@@ -1046,6 +1048,18 @@
       btn.onclick = () => wizToggle(emoji, label, btn);
       grid.appendChild(btn);
     });
+
+    // free text for steps that need it
+    const ftWrap = document.getElementById('wiz-freetext-wrap');
+    const ftArea = document.getElementById('wiz-freetext');
+    if (step.freeText) {
+      ftWrap.style.display = 'block';
+      const existing = (wizAnswers[step.id] || []).find(c => c.emoji === '✏️');
+      ftArea.value = existing ? existing.label : '';
+    } else {
+      ftWrap.style.display = 'none';
+      ftArea.value = '';
+    }
   }
 
   function wizToggle(emoji, label, btn) {
@@ -1061,9 +1075,18 @@
     }
   }
 
-  function wizNext() {
+  function captureWizStep() {
     const step = DAILY_STEPS[wizStep];
-    wizAnswers[step.id] = wizSel.slice();
+    const sel = wizSel.slice();
+    if (step.freeText) {
+      const txt = document.getElementById('wiz-freetext').value.trim();
+      if (txt) sel.push({ emoji: '✏️', label: txt });
+    }
+    wizAnswers[step.id] = sel;
+  }
+
+  function wizNext() {
+    captureWizStep();
     if (wizStep < DAILY_STEPS.length - 1) {
       wizStep++;
       wizSel = wizAnswers[DAILY_STEPS[wizStep].id] || [];
@@ -1075,6 +1098,7 @@
   }
 
   function wizSkip() {
+    captureWizStep();
     wizAnswers[DAILY_STEPS[wizStep].id] = [];
     if (wizStep < DAILY_STEPS.length - 1) {
       wizStep++;
